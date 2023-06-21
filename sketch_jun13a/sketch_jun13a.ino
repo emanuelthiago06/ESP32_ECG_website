@@ -2,71 +2,59 @@
 #include <ESP8266HTTPClient.h>
 #include <WiFiClient.h>
 
-const char* ssid = "GPDS";
-const char* password = "1fp3gpds";
-
-//Your Domain name with URL path or IP address with path
-String serverName = "http://192.168.1.106:1880/update-sensor";
-
-// the following variables are unsigned longs because the time, measured in
-// milliseconds, will quickly become a bigger number than can be stored in an int.
-unsigned long lastTime = 0;
-// Timer set to 10 minutes (600000)
-//unsigned long timerDelay = 600000;
-// Set timer to 5 seconds (5000)
-unsigned long timerDelay = 5000;
-
 void setup() {
-  Serial.begin(115200); 
-
-  WiFi.begin(ssid, password);
-  Serial.println("Connecting");
-  while(WiFi.status() != WL_CONNECTED) {
-    delay(500);
-    Serial.print(".");
-  }
-  Serial.println("");
-  Serial.print("Connected to WiFi network with IP Address: ");
-  Serial.println(WiFi.localIP());
  
-  Serial.println("Timer set to 5 seconds (timerDelay variable), it will take 5 seconds before publishing the first reading.");
-}
-
-void loop() {
-  // Send an HTTP POST request depending on timerDelay
-  if ((millis() - lastTime) > timerDelay) {
-    //Check WiFi connection status
-    if(WiFi.status()== WL_CONNECTED){
-      WiFiClient client;
-      HTTPClient http;
-
-      String serverPath = serverName + "?temperature=24.37";
-      
-      // Your Domain name with URL path or IP address with path
-      http.begin(client, serverPath.c_str());
-  
-      // If you need Node-RED/server authentication, insert user and password below
-      //http.setAuthorization("REPLACE_WITH_SERVER_USERNAME", "REPLACE_WITH_SERVER_PASSWORD");
-        
-      // Send HTTP GET request
-      int httpResponseCode = http.GET();
-      
-      if (httpResponseCode>0) {
-        Serial.print("HTTP Response code: ");
-        Serial.println(httpResponseCode);
-        String payload = http.getString();
-        Serial.println(payload);
-      }
-      else {
-        Serial.print("Error code: ");
-        Serial.println(httpResponseCode);
-      }
-      // Free resources
-      http.end();
-    }
-    else {
-      Serial.println("WiFi Disconnected");
-    }
-    lastTime = millis();
+  Serial.begin(9600);                 //Serial connection
+  pinMode(4, INPUT); // Setup for leads off detection LO +
+  pinMode(5, INPUT); // Setup for leads off detection LO -
+  //WiFi.begin("brisa-2983954", "dtiu2ujf");   //WiFi connection
+  WiFi.begin("AndroidAP", "ewcs4018"); 
+  while (WiFi.status() != WL_CONNECTED) {  //Wait for the WiFI connection completion
+ 
+    delay(500);
+    Serial.println("Waiting for connection");
+ 
   }
+ 
+}
+ 
+void loop() {
+  
+  String input2;
+  if (WiFi.status() == WL_CONNECTED) { //Check WiFi connection status
+    if((digitalRead(4) == 1)||(digitalRead(5) == 1)){
+      Serial.println('!');
+      input2 = 0;
+      
+      }
+     else{
+      // send the value of analog input 0:
+      // int in = analogRead(A0)
+      input2 = String(analogRead(A0));
+      Serial.println(analogRead(A0));
+      }
+ 
+    HTTPClient http;    //Declare object of class HTTPClient
+    WiFiClient wifiClient;
+    http.begin(wifiClient,"http://192.168.183.135:8000/snippets/");      //Specify request destination
+    http.addHeader("Content-Type", "aplication/json");  //Specify content-type header
+    String input = "{\"amp\":";
+    input= input + input2;
+    input+= "}";
+    int httpCode = http.POST(input);   //Send the request
+    String payload = http.getString();                  //Get the response payload
+ 
+    Serial.println(httpCode);   //Print HTTP return code
+    Serial.println(payload);    //Print request response payload
+ 
+    http.end();  //Close connection
+ 
+  } else {
+ 
+    Serial.println("Error in WiFi connection");
+ 
+  }
+ 
+  delay(3000);  //Send a request every 30 seconds
+ 
 }
