@@ -2,9 +2,9 @@
 #include <HTTPClient.h>
 #include "fileData.h" // Inclui o arquivo com o array fileData
 
-const char* ssid = "AndroidAP";      // Substitua pelo seu SSID
-const char* password = "ewcs4018";       // Substitua pela senha do Wi-Fi
-const char* serverUrl = "http://192.168.112.135:8000/upload-esp/";
+const char* ssid = "brisa-2983954";      // Substitua pelo seu SSID
+const char* password = "dtiu2ujf";       // Substitua pela senha do Wi-Fi
+const char* serverUrl = "http://192.168.0.10:8000/upload-esp/";
 
 const int LINES_PER_PACKET = 128; // Número de linhas por pacote
 
@@ -25,7 +25,7 @@ void setup() {
 }
 
 void enviarPacotes() {
-  int totalLinhas = sizeof(fileData) / sizeof(fileData[0]); // Total de linhas no array
+  int totalLinhas = sizeof(fileData2) / sizeof(fileData2[0]); // Total de linhas no array
 
   for (int i = 0; i < totalLinhas; i += LINES_PER_PACKET) {
     String pacote = "[";
@@ -33,7 +33,7 @@ void enviarPacotes() {
 
     // Construir o pacote com até LINES_PER_PACKET linhas
     for (int j = 0; j < LINES_PER_PACKET && (i + j) < totalLinhas; j++) {
-      pacote += "\"" + String(fileData[i + j]) + "\"";
+      pacote += "\"" + String(fileData2[i + j]) + "\"";
       if (j < LINES_PER_PACKET - 1 && (i + j + 1) < totalLinhas) {
         pacote += ",";
       }
@@ -63,7 +63,7 @@ void enviarPacote(String pacote, String pos) {
     http.addHeader("Content-Type", "application/json");
 
     // Cria o payload em JSON
-    String userName = "dev";
+    String userName = "dev2";
     String jsonPayload = "{";
     jsonPayload += "\"user\": \"" + userName + "\",";
     jsonPayload += "\"lines\": " + pacote + ",";
